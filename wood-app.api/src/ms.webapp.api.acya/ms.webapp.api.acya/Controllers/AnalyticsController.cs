@@ -1,6 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using ms.webapp.api.acya.api.Interfaces;
 using ms.webapp.api.acya.core.Entities.DTOs.Analytics;
 
@@ -14,10 +17,12 @@ namespace ms.webapp.api.acya.api.Controllers
     public class AnalyticsController : BaseApiController
     {
         private readonly IAnalyticsService _analyticsService;
+        private readonly ILogger<AnalyticsController> _logger;
 
-        public AnalyticsController(IAnalyticsService analyticsService)
+        public AnalyticsController(IAnalyticsService analyticsService, ILogger<AnalyticsController> logger)
         {
             _analyticsService = analyticsService;
+            _logger = logger;
         }
 
         /// <summary>
@@ -94,6 +99,62 @@ namespace ms.webapp.api.acya.api.Controllers
             catch (Exception ex)
             {
                 return BadRequest($"Failed to retrieve stock health: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Retrieves unsold/dormant merchandise analytics for a configurable inactivity window (3, 6, or 12 months).
+        /// Requires authentication and operates strictly within the active tenant schema.
+        /// </summary>
+        [Authorize]
+        [HttpGet("unsold-merchandise")]
+        public async Task<ActionResult<UnsoldMerchandiseResponseDto>> GetUnsoldMerchandise(
+            [FromQuery] int months = 6,
+            [FromQuery] int? siteId = null,
+            [FromQuery] int? categoryId = null,
+            [FromQuery] int? subCategoryId = null,
+            [FromQuery] bool onlyWithStock = true,
+            [FromQuery] bool excludeNewArticles = true,
+            [FromQuery] int gracePeriodDays = 30,
+            [FromQuery] string? inactivityType = null,
+            [FromQuery] string? search = null,
+            [FromQuery] string sortBy = "stockValue",
+            [FromQuery] string sortDirection = "desc",
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 20,
+            [FromQuery] bool exportAll = false)
+        {
+            try
+            {
+                var queryParams = new UnsoldMerchandiseQueryParams
+                {
+                    Months = months,
+                    SiteId = siteId,
+                    CategoryId = categoryId,
+                    SubCategoryId = subCategoryId,
+                    OnlyWithStock = onlyWithStock,
+                    ExcludeNewArticles = excludeNewArticles,
+                    GracePeriodDays = gracePeriodDays,
+                    InactivityType = inactivityType,
+                    Search = search,
+                    SortBy = sortBy,
+                    SortDirection = sortDirection,
+                    Page = page,
+                    PageSize = pageSize,
+                    ExportAll = exportAll
+                };
+
+                var result = await _analyticsService.GetUnsoldMerchandiseAsync(queryParams);
+                return Ok(result);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to retrieve unsold merchandise analytics for months={Months}, siteId={SiteId}", months, siteId);
+                return StatusCode(500, new { message = "Une erreur interne est survenue lors du calcul des articles sans ventes." });
             }
         }
     }

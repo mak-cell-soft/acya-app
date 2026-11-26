@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using ms.webapp.api.acya.core.Entities.DTOs.Analytics;
@@ -14,5 +15,6 @@ namespace ms.webapp.api.acya.api.Interfaces
         Task<List<MonthlyRevenueDto>> GetMonthlyRevenueAsync(int months = 6);
         Task<List<TopSubCategoryDto>> GetTopSubCategoriesAsync(int months = 6);
         Task<List<SubCategoryStockHealthDto>> GetStockHealthBySubCategoryAsync(int? siteId = null);
+        Task<UnsoldMerchandiseResponseDto> GetUnsoldMerchandiseAsync(UnsoldMerchandiseQueryParams queryParams, DateTime? referenceUtcNow = null);
     }
 }

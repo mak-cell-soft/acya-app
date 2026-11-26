@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { analyticsService } from '@/services/components/analytics.service';
 import { useAuthStore } from '@/store/use-auth-store';
+import { UnsoldMerchandiseParams } from '@/types/analytics';
 
 export function useAnalyticsKpis(month?: number, year?: number) {
   const user = useAuthStore((state) => state.user);
@@ -34,5 +35,18 @@ export function useStockHealthBySubCategory(siteId?: number) {
     queryKey: ['analytics', 'stock-health', siteId],
     queryFn: () => analyticsService.getStockHealthBySubCategory(siteId),
     staleTime: 5 * 60 * 1000,
+  });
+}
+
+export function useUnsoldMerchandise(
+  params: UnsoldMerchandiseParams = {},
+  options?: { enabled?: boolean }
+) {
+  return useQuery({
+    queryKey: ['analytics', 'unsold-merchandise', params],
+    queryFn: () => analyticsService.getUnsoldMerchandise(params),
+    staleTime: 5 * 60 * 1000,
+    placeholderData: (previousData) => previousData,
+    enabled: options?.enabled ?? true,
   });
 }

@@ -70,6 +70,7 @@ import { useStockDashboardStats } from '@/hooks/use-stock';
 import { useEcheances, useSalesEcheances } from '@/hooks/use-payments';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ActivityLogSection } from '@/components/analytics/activity-log-section';
+import { UnsoldMerchandiseSection } from '@/components/analytics/unsold-merchandise-section';
 import { AnalyticsReport } from '@/components/analytics/analytics-report';
 import { usePermissionGuard } from '@/hooks/use-permission-guard';
 import { useEnterprise } from '@/hooks/use-enterprise';
@@ -1972,6 +1973,9 @@ export default function AnalyticsPage() {
             {renderStockHealth()}
           </CardContent>
         </Card>
+
+        {/* Unsold Merchandise / Dormant Stock Analytics */}
+        <UnsoldMerchandiseSection />
 
         {/* Activity Log — human-readable audit feed for non-IT managers */}
         <ActivityLogSection />

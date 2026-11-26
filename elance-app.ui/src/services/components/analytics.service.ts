@@ -1,5 +1,12 @@
 import api from '@/lib/axios';
-import { DashboardKpiDto, MonthlyRevenueDto, TopSubCategoryDto, SubCategoryStockHealthDto } from '@/types/analytics';
+import {
+  DashboardKpiDto,
+  MonthlyRevenueDto,
+  TopSubCategoryDto,
+  SubCategoryStockHealthDto,
+  UnsoldMerchandiseParams,
+  UnsoldMerchandiseResponseDto,
+} from '@/types/analytics';
 
 export const analyticsService = {
   getDashboardKpis: async (enterpriseId?: string, month?: number, year?: number): Promise<DashboardKpiDto> => {
@@ -26,6 +33,28 @@ export const analyticsService = {
   getStockHealthBySubCategory: async (siteId?: number): Promise<SubCategoryStockHealthDto[]> => {
     const response = await api.get('/Analytics/stock-health', {
       params: { siteId }
+    });
+    return response.data;
+  },
+
+  getUnsoldMerchandise: async (params: UnsoldMerchandiseParams = {}): Promise<UnsoldMerchandiseResponseDto> => {
+    const response = await api.get('/Analytics/unsold-merchandise', {
+      params: {
+        months: params.months ?? 6,
+        siteId: params.siteId,
+        categoryId: params.categoryId,
+        subCategoryId: params.subCategoryId,
+        onlyWithStock: params.onlyWithStock ?? true,
+        excludeNewArticles: params.excludeNewArticles ?? true,
+        gracePeriodDays: params.gracePeriodDays ?? 30,
+        inactivityType: params.inactivityType,
+        search: params.search || undefined,
+        sortBy: params.sortBy ?? 'stockValue',
+        sortDirection: params.sortDirection ?? 'desc',
+        page: params.page ?? 1,
+        pageSize: params.pageSize ?? 20,
+        exportAll: params.exportAll ?? false,
+      }
     });
     return response.data;
   }
