@@ -73,8 +73,7 @@ services:
       - FIREBASE_PROJECT_ID=${FIREBASE_PROJECT_ID:-acya-fcm-prod-dispatcher}
       - FIREBASE_MANAGEMENT_CREDENTIALS_PATH=/app/secrets/firebase-management-key.json
     ports:
-
-      - "8080:80"
+      - "127.0.0.1:8080:80"
     volumes:
       - ./storage/private/mobile:/app/storage/private/mobile
       - ./storage/secrets/firebase-service-account.json:/app/secrets/firebase-service-account.json:ro
@@ -100,7 +99,7 @@ services:
       - NODE_ENV=production
       - NEXT_PUBLIC_API_URL=https://acya.site/api/
     ports:
-      - "5000:3000"
+      - "127.0.0.1:5000:3000"
     depends_on:
       - api
     networks:
@@ -135,7 +134,7 @@ services:
       - BACKUP_SCHEDULER_URL=http://host.docker.internal:9095
       - BACKUP_SCHEDULER_SECRET=${BACKUP_SCHEDULER_SECRET}
     ports:
-      - "8082:80"
+      - "127.0.0.1:8082:80"
     volumes:
       - ./wood-app.api/db:/app/db:ro
       - /opt/acya-backup/state:/opt/acya-backup/state:ro
@@ -160,7 +159,7 @@ services:
       - NEXT_PUBLIC_API_URL=https://admin.acya.site/api/
       - BACKEND_INTERNAL_URL=http://admin-api:80/api/
     ports:
-      - "5002:3000"
+      - "127.0.0.1:5002:3000"
     depends_on:
       - admin-api
     networks:
