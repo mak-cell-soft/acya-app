@@ -915,7 +915,8 @@ namespace ms.webapp.api.acya.api.Services
                         {
                             content.ItemsCount = itemsCount;
                             content.Reference = transfer.Reference;
-                            content.ConfirmationCode = transfer.ConfirmationCode;
+                            content.TransferDate = transfer.TransferDate;
+                            content.ConfirmationCode = null; // Never expose validation PIN in destination notification payload
                             content.AdditionalData = new
                             {
                                 ExitDocNumber = transfer.ExitDocument.DocNumber,
@@ -1321,7 +1322,8 @@ namespace ms.webapp.api.acya.api.Services
                     Reference = transfer.Reference,
                     OriginSite = transfer.ExitDocument.SalesSite?.Address ?? "Origine",
                     ItemsCount = transfer.ExitDocument.DocumentMerchandises.Count,
-                    ConfirmationCode = transfer.ConfirmationCode,
+                    TransferDate = transfer.TransferDate,
+                    ConfirmationCode = null, // Never expose validation PIN in destination notification payload
                     AdditionalData = new
                     {
                         ExitDocNumber = transfer.ExitDocument.DocNumber,
@@ -1366,6 +1368,8 @@ namespace ms.webapp.api.acya.api.Services
                         reference = transfer.Reference,
                         originSite = transfer.ExitDocument.SalesSite?.Address ?? "Origine",
                         itemsCount = transfer.ExitDocument.DocumentMerchandises.Count,
+                        transferDate = transfer.TransferDate,
+                        status = (int)transfer.Status,
                         exitDocNumber = transfer.ExitDocument.DocNumber,
                         receiptDocNumber = transfer.ReceiptDocument.DocNumber,
                         destinationSiteId = destinationSiteId.ToString(),
@@ -1454,35 +1458,110 @@ namespace ms.webapp.api.acya.api.Services
             return await _repository.GetStocks();
         }
 
-        public async Task<StockTransferInfoDto?> GetStockTransferByIdAsync(int transferId)
+        private static bool CanViewConfirmationCode(int originSiteId, int? callerSiteId, bool isAdmin)
         {
-            return await _repository.GetStockTransferInfoById(transferId);
+            if (isAdmin) return true;
+            return originSiteId > 0 && callerSiteId.HasValue && callerSiteId.Value == originSiteId;
         }
 
-        public async Task<IEnumerable<StockTransferInfoDto>> GetStockTransfersInfosAsync(int? siteId = null)
+        public async Task<StockTransferInfoDto?> GetStockTransferByIdAsync(int transferId, int? callerSiteId = null, bool isAdmin = false)
         {
-            return await _repository.GetStockTransfersInfos(siteId);
+            var transfer = await _repository.GetStockTransferInfoById(transferId);
+            if (transfer != null && !CanViewConfirmationCode(transfer.OriginSiteId, callerSiteId, isAdmin))
+            {
+                transfer.ConfirmationCode = null;
+            }
+            return transfer;
         }
 
-        public async Task<IEnumerable<StockTransferDetailsDto>> GetStockTransfersDetailsAsync(string? originDoc, string? receiptDoc)
+        public async Task<IEnumerable<StockTransferInfoDto>> GetStockTransfersInfosAsync(int? siteId = null, int? callerSiteId = null, bool isAdmin = false)
+        {
+            var effectiveSiteId = isAdmin ? siteId : callerSiteId;
+            if (!isAdmin && (!effectiveSiteId.HasValue || effectiveSiteId.Value <= 0))
+            {
+                return Enumerable.Empty<StockTransferInfoDto>();
+            }
+
+            var transfers = (await _repository.GetStockTransfersInfos(effectiveSiteId)).ToList();
+            foreach (var tr in transfers)
+            {
+                if (!CanViewConfirmationCode(tr.OriginSiteId, callerSiteId, isAdmin))
+                {
+                    tr.ConfirmationCode = null;
+                }
+            }
+            return transfers;
+        }
+
+        public async Task<IEnumerable<StockTransferDetailsDto>> GetStockTransfersDetailsAsync(string? originDoc, string? receiptDoc, int? callerSiteId = null, bool isAdmin = false)
         {
              if (!string.IsNullOrEmpty(originDoc) || !string.IsNullOrEmpty(receiptDoc))
              {
                 bool exists = await _repository.DocTransferRefExists(originDoc ?? string.Empty, receiptDoc ?? string.Empty);
                 if (!exists) 
                 {
-                    // Return empty or throw? Controller returned NotFound. 
-                    // Service should probably just return empty list or specific result. 
-                    // Returning empty list is safer for now.
                     return Enumerable.Empty<StockTransferDetailsDto>();
                 }
              }
-             return await _repository.GetStockTransfersInfosDetails(originDoc, receiptDoc);
+             var details = (await _repository.GetStockTransfersInfosDetails(originDoc, receiptDoc)).ToList();
+             foreach (var item in details)
+             {
+                if (!CanViewConfirmationCode(item.OriginSiteId, callerSiteId, isAdmin))
+                {
+                    item.ConfirmationCode = null;
+                }
+             }
+             return details;
         }
 
-        public async Task<IEnumerable<StockTransferInfoDto>> GetFilteredStockTransfersAsync(DateTime? fromDate, DateTime? toDate, int? originSiteId, int? destinationSiteId)
+        public async Task<IEnumerable<StockTransferInfoDto>> GetFilteredStockTransfersAsync(DateTime? fromDate, DateTime? toDate, int? originSiteId, int? destinationSiteId, int? callerSiteId = null, bool isAdmin = false)
         {
-            return await _repository.GetFilteredStockInfosTransfers(fromDate, toDate, originSiteId, destinationSiteId);
+            var transfers = (await _repository.GetFilteredStockInfosTransfers(fromDate, toDate, originSiteId, destinationSiteId)).ToList();
+            if (!isAdmin)
+            {
+                if (!callerSiteId.HasValue || callerSiteId.Value <= 0)
+                {
+                    return Enumerable.Empty<StockTransferInfoDto>();
+                }
+                transfers = transfers
+                    .Where(t => t.OriginSiteId == callerSiteId.Value || t.DestinationSiteId == callerSiteId.Value)
+                    .ToList();
+            }
+
+            foreach (var tr in transfers)
+            {
+                if (!CanViewConfirmationCode(tr.OriginSiteId, callerSiteId, isAdmin))
+                {
+                    tr.ConfirmationCode = null;
+                }
+            }
+            return transfers;
+        }
+
+        public async Task<PagedStockTransfersDto> SearchStockTransfersAsync(StockTransferFilterDto filter, int? callerSiteId = null, bool isAdmin = false)
+        {
+            return await _repository.SearchStockTransfersAsync(filter, callerSiteId, isAdmin);
+        }
+
+        public async Task<(bool Found, bool Authorized, string? ConfirmationCode)> GetConfirmationCodeAsync(int transferId, int? callerSiteId, bool isAdmin)
+        {
+            var transfer = await _context.StockTransfers
+                .AsNoTracking()
+                .Include(t => t.ExitDocument)
+                .FirstOrDefaultAsync(t => t.Id == transferId);
+
+            if (transfer == null)
+            {
+                return (false, false, null);
+            }
+
+            int originSiteId = transfer.ExitDocument?.SalesSiteId ?? 0;
+            if (!CanViewConfirmationCode(originSiteId, callerSiteId, isAdmin))
+            {
+                return (true, false, null);
+            }
+
+            return (true, true, transfer.ConfirmationCode);
         }
 
         public async Task<IEnumerable<WoodArticleStockDetail>> GetWoodArticleStockDetailsAsync(string articleRef, int salesSiteId, int merchandiseId)
@@ -1603,6 +1682,8 @@ namespace ms.webapp.api.acya.api.Services
                         Reference = transfer.Reference,
                         OriginSite = origin.Address,
                         ItemsCount = itemsCount,
+                        TransferDate = transfer.TransferDate,
+                        Status = (int)transfer.Status,
                         ExitDocNumber = exitDocNum,
                         ReceiptDocNumber = receiptDocNum,
                         DestinationSiteId = destination.Id
@@ -1628,6 +1709,7 @@ namespace ms.webapp.api.acya.api.Services
                     Reference = transfer.Reference,
                     OriginSite = origin.Address,
                     ItemsCount = itemsCount,
+                    TransferDate = transfer.TransferDate,
                     AdditionalData = new
                     {
                         ExitDocNumber = exitDocNum,

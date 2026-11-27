@@ -1,12 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQueryClient, useQuery } from '@tanstack/react-query';
-import { useStockTransfers } from '@/hooks/use-stock';
+import { useStockTransfersSearch } from '@/hooks/use-stock';
 import { useAuthStore } from '@/store/use-auth-store';
 import { stockService } from '@/services/components/stock.service';
-import { StockTransferInfo, TransferStatus, TransferStatus_FR } from '@/types/stock';
+import { StockTransferInfo, StockTransferSearchParams, TransferStatus, TransferStatus_FR } from '@/types/stock';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
@@ -35,21 +35,34 @@ import {
   Printer,
   Pencil,
   RotateCcw,
-  AlertTriangle
+  AlertTriangle,
+  Search,
+  Clock,
+  ChevronLeft,
+  ChevronRight,
+  Copy,
+  KeyRound
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { PrintVariantDialog } from '@/components/print/print-trigger-button';
 import { StockTransferEditDialog } from './stock-transfer-edit-dialog';
 
+const PAGE_SIZE = 20;
+
 export function StockTransfersList() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { user } = useAuthStore();
-  const isAdmin = user?.role === 'Admin' || user?.role === 'SuperAdmin';
+  const isAdmin =
+    user?.role === 'Admin' ||
+    user?.role === 'SuperAdmin' ||
+    user?.role === '10' ||
+    user?.role === '20';
 
+  // Fail-closed origin check: missing site identifiers never grant origin authorization
   const isOriginUser = (tr: StockTransferInfo) => {
     if (isAdmin) return true;
-    if (!tr.originSiteId || !user?.defaultSiteId) return true;
+    if (!tr.originSiteId || !user?.defaultSiteId) return false;
     return Number(user.defaultSiteId) === Number(tr.originSiteId);
   };
 
@@ -62,7 +75,75 @@ export function StockTransfersList() {
     }
   };
 
-  const { data: transfers = [], isLoading, error } = useStockTransfers();
+  // Filter & pagination state (server-backed)
+  const [referenceInput, setReferenceInput] = useState('');
+  const [debouncedReference, setDebouncedReference] = useState('');
+  const [statusFilter, setStatusFilter] = useState<TransferStatus | ''>('');
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
+  const [olderPendingOnly, setOlderPendingOnly] = useState(false);
+  const [page, setPage] = useState(1);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedReference(referenceInput.trim());
+      setPage(1);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [referenceInput]);
+
+  const searchParams: StockTransferSearchParams = {
+    reference: debouncedReference || undefined,
+    status: olderPendingOnly ? TransferStatus.Pending : (statusFilter || undefined),
+    fromDate: fromDate || undefined,
+    toDate: toDate || undefined,
+    olderPendingOnly,
+    olderThanDays: 30,
+    page,
+    pageSize: PAGE_SIZE,
+  };
+
+  const { data: pagedResult, isLoading, isFetching, error } = useStockTransfersSearch(searchParams);
+  const transfers = pagedResult?.items ?? [];
+  const totalCount = pagedResult?.totalCount ?? 0;
+  const totalPages = pagedResult?.totalPages ?? 0;
+  const historicalPendingCount = pagedResult?.historicalPendingCount ?? 0;
+
+  const hasActiveFilters = Boolean(
+    debouncedReference || statusFilter !== '' || fromDate || toDate || olderPendingOnly
+  );
+
+  const handleResetFilters = () => {
+    setReferenceInput('');
+    setDebouncedReference('');
+    setStatusFilter('');
+    setFromDate('');
+    setToDate('');
+    setOlderPendingOnly(false);
+    setPage(1);
+  };
+
+  const handleToggleOlderPending = () => {
+    const next = !olderPendingOnly;
+    setOlderPendingOnly(next);
+    if (next) {
+      setStatusFilter(TransferStatus.Pending);
+      setFromDate('');
+      setToDate('');
+    } else {
+      setStatusFilter('');
+    }
+    setPage(1);
+  };
+
+  const handleCopyCode = async (code: string) => {
+    try {
+      await navigator.clipboard.writeText(code);
+      toast.success('Code de validation copié.');
+    } catch {
+      toast.error('Impossible de copier le code.');
+    }
+  };
 
   // Active Selected Transfer Drawer State
   const [selectedTransfer, setSelectedTransfer] = useState<StockTransferInfo | null>(null);
@@ -181,10 +262,170 @@ export function StockTransfersList() {
         </Button>
       </div>
 
+      {/* Search & Historical Filter Bar */}
+      <div className="bg-white dark:bg-stone-900/30 border border-stone-200/70 dark:border-stone-800/70 rounded-xl p-4 space-y-3 shadow-xs">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 items-end">
+          {/* Reference search */}
+          <div className="lg:col-span-3 space-y-1">
+            <Label htmlFor="transfer-ref-search" className="text-[10px] uppercase font-bold text-stone-500 tracking-wider">
+              Référence / N° Bon
+            </Label>
+            <div className="relative">
+              <Search className="h-3.5 w-3.5 text-stone-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <Input
+                id="transfer-ref-search"
+                value={referenceInput}
+                onChange={(e) => setReferenceInput(e.target.value)}
+                placeholder="Ex: TS26-00012..."
+                className="pl-8 h-9 text-xs bg-stone-50/50 dark:bg-stone-950 border-stone-200 dark:border-stone-800 rounded-lg"
+              />
+            </div>
+          </div>
+
+          {/* Status select */}
+          <div className="lg:col-span-2 space-y-1">
+            <Label htmlFor="transfer-status-filter" className="text-[10px] uppercase font-bold text-stone-500 tracking-wider">
+              Statut
+            </Label>
+            <select
+              id="transfer-status-filter"
+              value={olderPendingOnly ? TransferStatus.Pending : statusFilter}
+              disabled={olderPendingOnly}
+              onChange={(e) => {
+                const val = e.target.value;
+                setStatusFilter(val === '' ? '' : (Number(val) as TransferStatus));
+                setPage(1);
+              }}
+              className="w-full h-9 px-2.5 text-xs bg-stone-50/50 dark:bg-stone-950 border border-stone-200 dark:border-stone-800 rounded-lg focus:outline-none focus:ring-1 focus:ring-amber-500 disabled:opacity-60"
+            >
+              <option value="">Tous les statuts</option>
+              <option value={TransferStatus.Pending}>En attente</option>
+              <option value={TransferStatus.Confirmed}>Confirmé</option>
+              <option value={TransferStatus.Rejected}>Rejeté</option>
+              <option value={TransferStatus.Cancelled}>Annulé</option>
+            </select>
+          </div>
+
+          {/* Start date */}
+          <div className="lg:col-span-2 space-y-1">
+            <Label htmlFor="transfer-from-date" className="text-[10px] uppercase font-bold text-stone-500 tracking-wider">
+              Date début
+            </Label>
+            <Input
+              id="transfer-from-date"
+              type="date"
+              value={fromDate}
+              disabled={olderPendingOnly}
+              onChange={(e) => {
+                setFromDate(e.target.value);
+                setPage(1);
+              }}
+              className="h-9 text-xs bg-stone-50/50 dark:bg-stone-950 border-stone-200 dark:border-stone-800 rounded-lg"
+            />
+          </div>
+
+          {/* End date */}
+          <div className="lg:col-span-2 space-y-1">
+            <Label htmlFor="transfer-to-date" className="text-[10px] uppercase font-bold text-stone-500 tracking-wider">
+              Date fin
+            </Label>
+            <Input
+              id="transfer-to-date"
+              type="date"
+              value={toDate}
+              disabled={olderPendingOnly}
+              onChange={(e) => {
+                setToDate(e.target.value);
+                setPage(1);
+              }}
+              className="h-9 text-xs bg-stone-50/50 dark:bg-stone-950 border-stone-200 dark:border-stone-800 rounded-lg"
+            />
+          </div>
+
+          {/* Dedicated Older Pending (> 30 days) toggle */}
+          <div className="lg:col-span-3 flex items-center gap-2">
+            <Button
+              type="button"
+              variant={olderPendingOnly ? 'default' : 'outline'}
+              onClick={handleToggleOlderPending}
+              className={
+                olderPendingOnly
+                  ? 'flex-1 h-9 px-3 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-[11px] font-bold gap-1.5 shadow-xs'
+                  : 'flex-1 h-9 px-3 rounded-lg border-amber-300/80 dark:border-amber-800/70 text-amber-800 dark:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-950/30 text-[11px] font-bold gap-1.5'
+              }
+            >
+              <Clock className="h-3.5 w-3.5 shrink-0" />
+              <span className="truncate">En attente &gt; 30j</span>
+              {historicalPendingCount > 0 && (
+                <span
+                  className={
+                    olderPendingOnly
+                      ? 'ml-1 px-1.5 py-0.5 rounded-full text-[10px] font-mono bg-white/20 text-white tabular-nums'
+                      : 'ml-1 px-1.5 py-0.5 rounded-full text-[10px] font-mono bg-amber-100 text-amber-900 dark:bg-amber-900/60 dark:text-amber-200 tabular-nums'
+                  }
+                >
+                  {historicalPendingCount}
+                </span>
+              )}
+            </Button>
+
+            {hasActiveFilters && (
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={handleResetFilters}
+                title="Réinitialiser les filtres"
+                className="h-9 px-2.5 rounded-lg text-stone-500 hover:text-stone-900 dark:hover:text-stone-100 text-xs"
+              >
+                <CloseIcon className="h-3.5 w-3.5" />
+              </Button>
+            )}
+          </div>
+        </div>
+
+        {/* Context strip */}
+        <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-stone-500 dark:text-stone-400 pt-1 border-t border-stone-100 dark:border-stone-800/60">
+          <div className="flex items-center gap-2">
+            {olderPendingOnly ? (
+              <span className="text-amber-700 dark:text-amber-400 font-medium flex items-center gap-1.5">
+                <Clock className="h-3.5 w-3.5 shrink-0" />
+                Affichage de tous les transferts historiques en attente de réception (&gt; 30 jours), quel que soit leur âge.
+              </span>
+            ) : hasActiveFilters ? (
+              <span>Résultats filtrés sur l&apos;historique complet ({totalCount} transfert{totalCount > 1 ? 's' : ''}).</span>
+            ) : (
+              <span>Vue par défaut : transferts des 30 derniers jours ({totalCount} transfert{totalCount > 1 ? 's' : ''}).</span>
+            )}
+          </div>
+          {isFetching && !isLoading && (
+            <span className="flex items-center gap-1 text-[10px] uppercase tracking-wider font-semibold text-stone-400">
+              <Loader2 className="h-3 w-3 animate-spin" /> Actualisation...
+            </span>
+          )}
+        </div>
+      </div>
+
       {transfers.length === 0 ? (
         <Card className="border-stone-200 dark:border-stone-800 bg-stone-50/50 dark:bg-stone-900/10">
-          <CardContent className="p-12 text-center text-stone-400 italic text-xs">
-            Aucun transfert de stock enregistré dans le registre.
+          <CardContent className="p-12 text-center text-stone-400 italic text-xs space-y-2">
+            <p>
+              {olderPendingOnly
+                ? 'Aucun transfert historique en attente de réception (> 30 jours).'
+                : hasActiveFilters
+                ? 'Aucun transfert ne correspond aux critères de recherche.'
+                : 'Aucun transfert de stock enregistré au cours des 30 derniers jours.'}
+            </p>
+            {!olderPendingOnly && historicalPendingCount > 0 && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleToggleOlderPending}
+                className="mt-2 text-xs font-semibold border-amber-300 text-amber-800 hover:bg-amber-50 rounded-lg"
+              >
+                Voir les {historicalPendingCount} transfert(s) en attente &gt; 30 jours
+              </Button>
+            )}
           </CardContent>
         </Card>
       ) : (
@@ -274,7 +515,7 @@ export function StockTransfersList() {
                           <Eye className="h-3.5 w-3.5" /> Voir
                         </Button>
 
-                        {tr.status === TransferStatus.Pending && (
+                        {tr.status === TransferStatus.Pending && isOriginUser(tr) && (
                           <Button
                             variant="ghost"
                             onClick={() => setEditTransfer(tr)}
@@ -301,6 +542,38 @@ export function StockTransfersList() {
               </tbody>
             </table>
           </div>
+
+          {/* Server-side Pagination Bar */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between px-4 py-3 border-t border-stone-200/60 dark:border-stone-800/60 bg-stone-50/40 dark:bg-stone-900/30 text-xs">
+              <span className="text-stone-500 dark:text-stone-400 font-medium tabular-nums">
+                Page <span className="font-bold text-stone-800 dark:text-stone-200">{page}</span> sur{' '}
+                <span className="font-bold text-stone-800 dark:text-stone-200">{totalPages}</span> — {totalCount} transfert{totalCount > 1 ? 's' : ''}
+              </span>
+              <div className="flex items-center gap-1.5">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={page <= 1 || isFetching}
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  className="h-8 px-2.5 rounded-lg text-xs font-semibold gap-1"
+                >
+                  <ChevronLeft className="h-3.5 w-3.5" /> Précédent
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={page >= totalPages || isFetching}
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  className="h-8 px-2.5 rounded-lg text-xs font-semibold gap-1"
+                >
+                  Suivant <ChevronRight className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -336,6 +609,38 @@ export function StockTransfersList() {
               </div>
             </div>
           </div>
+
+          {/* Sender Validation Code (visible ONLY for Pending transfers when authorized by backend as origin user / Admin) */}
+          {selectedTransfer?.status === TransferStatus.Pending &&
+            isOriginUser(selectedTransfer) &&
+            selectedTransfer.confirmationCode && (
+              <div className="p-3.5 bg-amber-50/80 dark:bg-amber-950/30 rounded-xl border border-amber-200 dark:border-amber-900/60 flex items-center justify-between gap-3">
+                <div className="space-y-0.5">
+                  <span className="text-[10px] uppercase font-bold text-amber-800 dark:text-amber-400 tracking-wider flex items-center gap-1.5">
+                    <KeyRound className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400" />
+                    Code de Validation (Expéditeur)
+                  </span>
+                  <p className="text-[11px] text-amber-900/80 dark:text-amber-200/80">
+                    Communiquez ce code au dépôt réceptionnaire pour confirmer la réception.
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <span className="px-3 py-1.5 rounded-lg bg-white dark:bg-stone-950 border border-amber-300 dark:border-amber-800 font-mono text-base font-bold tracking-widest text-stone-900 dark:text-stone-50 tabular-nums">
+                    {selectedTransfer.confirmationCode}
+                  </span>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleCopyCode(selectedTransfer.confirmationCode!)}
+                    className="h-9 px-2.5 rounded-lg border-amber-300 dark:border-amber-800 text-amber-800 dark:text-amber-300 hover:bg-amber-100/60"
+                    title="Copier le code de validation"
+                  >
+                    <Copy className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              </div>
+            )}
 
           {/* Rejection Notice if transfer is Rejected */}
           {selectedTransfer?.status === TransferStatus.Rejected && (

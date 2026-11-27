@@ -1,6 +1,6 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import { stockService } from '@/services/components/stock.service';
-import { Stock, StockTransferInfo, StockTransferDetails } from '@/types/stock';
+import { Stock, StockTransferInfo, StockTransferDetails, StockTransferSearchParams, PagedStockTransfersResponse } from '@/types/stock';
 
 export interface StockQuantity {
   id: number;
@@ -73,6 +73,17 @@ export function useStockTransfers(siteId?: string) {
   return useQuery<StockTransferInfo[]>({
     queryKey: ['stocks', 'transfers', siteId],
     queryFn: () => stockService.getStockTransfers(siteId),
+  });
+}
+
+/**
+ * Hook to fetch paginated and server-filtered stock transfers (including historical pending transfers > 30 days).
+ */
+export function useStockTransfersSearch(params: StockTransferSearchParams) {
+  return useQuery<PagedStockTransfersResponse>({
+    queryKey: ['stocks', 'transfers', 'search', params],
+    queryFn: () => stockService.searchStockTransfers(params),
+    placeholderData: keepPreviousData,
   });
 }
 

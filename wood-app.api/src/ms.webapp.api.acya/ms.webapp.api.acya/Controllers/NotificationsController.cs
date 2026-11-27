@@ -114,9 +114,37 @@ namespace ms.webapp.api.acya.api.Controllers
     }
 
     [HttpDelete("{transferId}")]
+    [Authorize]
     public async Task<IActionResult> Delete(int transferId)
     {
-      var siteId = User.FindFirst("DefaultSite")?.Value;
+      var siteId = User.FindFirst("DefaultSiteId")?.Value;
+      if (string.IsNullOrEmpty(siteId) && _context != null)
+      {
+        var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (int.TryParse(userIdStr, out var userId) && userId > 0)
+        {
+          var userSiteId = await _context.AppUsers
+              .AsNoTracking()
+              .Where(u => u.Id == userId)
+              .Select(u => u.IdSalesSite)
+              .FirstOrDefaultAsync();
+          if (userSiteId.HasValue && userSiteId.Value > 0)
+          {
+            siteId = userSiteId.Value.ToString();
+          }
+        }
+
+        if (string.IsNullOrEmpty(siteId))
+        {
+          var siteAddress = User.FindFirst("DefaultSite")?.Value;
+          if (!string.IsNullOrEmpty(siteAddress))
+          {
+            var site = await _context.SalesSites.AsNoTracking().FirstOrDefaultAsync(s => s.Address == siteAddress);
+            if (site != null) siteId = site.Id.ToString();
+          }
+        }
+      }
+
       if (string.IsNullOrEmpty(siteId)) return BadRequest("User site context not found.");
 
       await _stockNotificationService.DeleteNotificationByTransferId(transferId, siteId);

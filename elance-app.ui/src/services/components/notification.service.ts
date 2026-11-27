@@ -1,4 +1,5 @@
 import api from '@/lib/axios';
+import { TransferStatus } from '@/types/stock';
 
 export enum NotificationType {
   Info = 0,
@@ -22,8 +23,10 @@ export interface AppNotification {
 export interface TransferNotification {
   id: number;
   transferRef: string;
-  originSite: number;
+  originSite: string;
   date: Date;
+  dispatchDate?: string | null;
+  status?: TransferStatus;
   itemsCount: number;
   exitDocNumber: string;
   receiptDocNumber: string;

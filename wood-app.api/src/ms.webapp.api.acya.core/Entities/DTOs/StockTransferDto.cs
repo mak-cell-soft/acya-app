@@ -33,6 +33,9 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
     public string? OriginAddress { get; set; }
     public string? DestinationGov { get; set; }
     public string? DestinationAddress { get; set; }
+    public int OriginSiteId { get; set; }
+    public int DestinationSiteId { get; set; }
+    public int ItemsCount { get; set; }
     public DateTime TransferDate { get; set; }
     public string Transporter { get; set; } = string.Empty;
     public string RefPaquet { get; set; } = string.Empty;
@@ -46,6 +49,29 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
     public string? RejectionReason { get; set; }
   }
 
+  public class StockTransferFilterDto
+  {
+    public int? SiteId { get; set; }
+    public string? Reference { get; set; }
+    public TransferStatus? Status { get; set; }
+    public DateTime? FromDate { get; set; }
+    public DateTime? ToDate { get; set; }
+    public bool OlderPendingOnly { get; set; } = false;
+    public int OlderThanDays { get; set; } = 30;
+    public int Page { get; set; } = 1;
+    public int PageSize { get; set; } = 20;
+  }
+
+  public class PagedStockTransfersDto
+  {
+    public IEnumerable<StockTransferInfoDto> Items { get; set; } = Enumerable.Empty<StockTransferInfoDto>();
+    public int TotalCount { get; set; }
+    public int Page { get; set; } = 1;
+    public int PageSize { get; set; } = 20;
+    public int TotalPages { get; set; }
+    public int HistoricalPendingCount { get; set; }
+  }
+
   public class StockTransferDetailsDto
   {
     public int Id { get; set; }
@@ -57,6 +83,8 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
     public string? OriginAddress { get; set; }
     public string? DestinationGov { get; set; }
     public string? DestinationAddress { get; set; }
+    public int OriginSiteId { get; set; }
+    public int DestinationSiteId { get; set; }
     public DateTime TransferDate { get; set; }
     public string? Transporter { get; set; }
     public string? RefPaquet { get; set; }
@@ -106,6 +134,7 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
     public string? Reference { get; set; }
     public string? OriginSite { get; set; }
     public int ItemsCount { get; set; }
+    public DateTime? TransferDate { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public string? ConfirmationCode { get; set; }
 
@@ -122,5 +151,30 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
     {
       return JsonSerializer.Deserialize<NotificationDto>(json);
     }
+  }
+
+  public class PendingTransferNotificationDto
+  {
+    // Backwards-compatible PendingNotification fields
+    public int Id { get; set; }
+    public string? Content { get; set; }
+    public string? TargetGroup { get; set; }
+    public TransferStatus Status { get; set; }
+    public int RetryCount { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public DateTime? LastAttemptAt { get; set; }
+    public DateTime? DeliveredAt { get; set; }
+    public string? ErrorMessage { get; set; }
+
+    // Enriched authoritative transfer fields from tbl_stock_transfer
+    public int TransferId { get; set; }
+    public string TransferRef { get; set; } = string.Empty;
+    public string OriginSite { get; set; } = string.Empty;
+    public DateTime? TransferDate { get; set; }
+    public int ItemsCount { get; set; }
+    public TransferStatus TransferStatus { get; set; }
+    public string ExitDocNumber { get; set; } = string.Empty;
+    public string ReceiptDocNumber { get; set; } = string.Empty;
+    public int DestinationSiteId { get; set; }
   }
 }

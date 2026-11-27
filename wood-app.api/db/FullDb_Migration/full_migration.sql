@@ -1923,3 +1923,11 @@ CREATE UNIQUE INDEX IF NOT EXISTS uq_app_notifications_saas_billing_event
     ON "AppNotifications" ("RelatedEntityType", "RelatedEntityId")
     WHERE "RelatedEntityType" IN ('SaaSInvoice', 'SaaSSubscription')
       AND "RelatedEntityId" IS NOT NULL;
+
+-- From v0.45: Composite & partial indexes on tbl_stock_transfer for historical pending & paginated searches
+CREATE INDEX IF NOT EXISTS ix_tbl_stock_transfer_status_transferdate
+    ON tbl_stock_transfer (status, transferdate DESC);
+
+CREATE INDEX IF NOT EXISTS ix_tbl_stock_transfer_pending_date
+    ON tbl_stock_transfer (transferdate DESC)
+    WHERE status = 1;

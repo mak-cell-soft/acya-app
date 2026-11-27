@@ -1,5 +1,6 @@
 import api from '@/lib/axios';
 import { useAuthStore } from '@/store/use-auth-store';
+import { PagedStockTransfersResponse, StockTransferSearchParams } from '@/types/stock';
 
 export const stockService = {
   getAll: async () => {
@@ -36,6 +37,43 @@ export const stockService = {
     const finalSiteId = siteId || useAuthStore.getState().user?.defaultSiteId;
     const response = await api.get('/Stock/transfers/infos', {
       params: { siteId: finalSiteId }
+    });
+    return response.data;
+  },
+
+  searchStockTransfers: async (params: StockTransferSearchParams = {}): Promise<PagedStockTransfersResponse> => {
+    const user = useAuthStore.getState().user;
+    const isAdmin = user?.role === 'Admin' || user?.role === 'SuperAdmin' || user?.role === '10' || user?.role === '20';
+    const queryParams: Record<string, string | number | boolean> = {
+      page: params.page ?? 1,
+      pageSize: params.pageSize ?? 20,
+    };
+
+    if (params.siteId !== undefined && params.siteId !== '') {
+      queryParams.siteId = params.siteId;
+    } else if (!isAdmin && user?.defaultSiteId) {
+      queryParams.siteId = user.defaultSiteId;
+    }
+
+    if (params.reference && params.reference.trim()) {
+      queryParams.reference = params.reference.trim();
+    }
+    if (params.status !== undefined && params.status !== '') {
+      queryParams.status = params.status;
+    }
+    if (params.fromDate) {
+      queryParams.fromDate = params.fromDate;
+    }
+    if (params.toDate) {
+      queryParams.toDate = params.toDate;
+    }
+    if (params.olderPendingOnly) {
+      queryParams.olderPendingOnly = true;
+      queryParams.olderThanDays = params.olderThanDays ?? 30;
+    }
+
+    const response = await api.get<PagedStockTransfersResponse>('/Stock/transfers/search', {
+      params: queryParams,
     });
     return response.data;
   },

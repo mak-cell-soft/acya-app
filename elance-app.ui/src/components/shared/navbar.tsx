@@ -415,7 +415,8 @@ function NavbarSearch() {
 }
 
 import { useNotifications } from '@/hooks/use-notifications';
-import { Truck as TruckIcon, AlertTriangle as AlertIcon, Info as InfoIcon, Check as CheckIcon, RefreshCw, Eye, Mail as MailIcon } from 'lucide-react';
+import { TransferStatus, TransferStatus_FR } from '@/types/stock';
+import { Truck as TruckIcon, AlertTriangle as AlertIcon, Info as InfoIcon, Check as CheckIcon, RefreshCw, Eye, Mail as MailIcon, Calendar as CalendarIcon } from 'lucide-react';
 
 function NavbarNotifications() {
   const router = useRouter();
@@ -432,6 +433,7 @@ function NavbarNotifications() {
   } = useNotifications();
 
   const [isRefreshing, setIsRefreshing] = React.useState(false);
+  const [referenceNowMs] = React.useState<number>(() => Date.now());
 
   const unreadBillingNotifications = React.useMemo(
     () =>
@@ -553,39 +555,66 @@ function NavbarNotifications() {
                 Expéditions Inter-Sites En Transit ({notifications.length})
               </span>
               <div className="space-y-1">
-                {notifications.map((tr) => (
-                  <div 
-                    key={tr.id} 
-                    className="p-2.5 bg-white dark:bg-zinc-900 border border-zinc-200/60 dark:border-zinc-800/60 rounded-xl flex items-start justify-between gap-3 shadow-sm hover:border-amber-300 transition"
-                  >
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-1.5">
-                        <TruckIcon className="h-3.5 w-3.5 text-amber-500 shrink-0" />
-                        <span className="font-mono text-xs font-bold text-zinc-900 dark:text-zinc-100">{tr.transferRef}</span>
+                {notifications.map((tr) => {
+                  const parsedDispatchDate = tr.dispatchDate ? new Date(tr.dispatchDate) : null;
+                  const isValidDispatchDate = parsedDispatchDate && !Number.isNaN(parsedDispatchDate.getTime());
+                  const isOlderThan30Days =
+                    isValidDispatchDate && referenceNowMs !== null
+                      ? (referenceNowMs - parsedDispatchDate.getTime()) > 30 * 24 * 60 * 60 * 1000
+                      : false;
+                  const statusValue = tr.status ?? TransferStatus.Pending;
+                  const statusLabel = TransferStatus_FR[statusValue] || 'En attente';
+
+                  return (
+                    <div
+                      key={tr.id}
+                      className="p-2.5 bg-white dark:bg-zinc-900 border border-zinc-200/60 dark:border-zinc-800/60 rounded-xl flex items-start justify-between gap-3 shadow-sm hover:border-amber-300 transition"
+                    >
+                      <div className="flex-1 min-w-0 space-y-1">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <TruckIcon className="h-3.5 w-3.5 text-amber-500 shrink-0" />
+                          <span className="font-mono text-xs font-bold text-zinc-900 dark:text-zinc-100 truncate">
+                            {tr.transferRef}
+                          </span>
+                          <span className="inline-flex items-center px-1.5 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300 border border-amber-200/70 dark:border-amber-800/60">
+                            {statusLabel}
+                          </span>
+                          {isOlderThan30Days && (
+                            <span className="inline-flex items-center px-1.5 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300 border border-rose-200/70 dark:border-rose-800/60">
+                              &gt; 30j
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-[10px] text-zinc-500 dark:text-zinc-400 leading-tight truncate">
+                          Origine : <span className="font-medium text-zinc-700 dark:text-zinc-300">{tr.originSite}</span> • {tr.itemsCount} article{tr.itemsCount > 1 ? 's' : ''}
+                        </p>
+                        <p className="text-[10px] text-zinc-400 flex items-center gap-1 leading-none font-mono">
+                          <CalendarIcon className="h-3 w-3 shrink-0" />
+                          <span>
+                            Expédié le : {isValidDispatchDate ? parsedDispatchDate.toLocaleDateString('fr-FR') : 'Date non renseignée'}
+                          </span>
+                        </p>
                       </div>
-                      <p className="text-[10px] text-zinc-400 mt-0.5 lowercase leading-none">
-                        Origine: {tr.originSite} • {tr.itemsCount} articles
-                      </p>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <Button
+                          size="sm"
+                          onClick={() => openTransferConfirmDialog(tr)}
+                          className="h-7 px-2.5 bg-corp-blue-600 hover:bg-corp-blue-800 text-white rounded-lg text-[10px] font-bold gap-1"
+                        >
+                          <Eye className="h-3 w-3" /> Réceptionner
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => dismissNotification(tr.id)}
+                          className="h-7 w-7 p-0 text-zinc-400 hover:text-rose-500 rounded-lg shrink-0"
+                        >
+                          <X className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-1 shrink-0">
-                      <Button
-                        size="sm"
-                        onClick={() => openTransferConfirmDialog(tr)}
-                        className="h-7 px-2.5 bg-corp-blue-600 hover:bg-corp-blue-800 text-white rounded-lg text-[10px] font-bold gap-1"
-                      >
-                        <Eye className="h-3 w-3" /> Réceptionner
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => dismissNotification(tr.id)}
-                        className="h-7 w-7 p-0 text-zinc-400 hover:text-rose-500 rounded-lg shrink-0"
-                      >
-                        <X className="h-3.5 w-3.5" />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}

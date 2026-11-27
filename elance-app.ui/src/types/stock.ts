@@ -83,6 +83,28 @@ export interface StockTransferInfo {
   rejectionReason?: string;
   originSiteId?: number;
   destinationSiteId?: number;
+  itemsCount?: number;
+}
+
+export interface StockTransferSearchParams {
+  siteId?: number | string;
+  reference?: string;
+  status?: TransferStatus | '';
+  fromDate?: string;
+  toDate?: string;
+  olderPendingOnly?: boolean;
+  olderThanDays?: number;
+  page?: number;
+  pageSize?: number;
+}
+
+export interface PagedStockTransfersResponse {
+  items: StockTransferInfo[];
+  totalCount: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+  historicalPendingCount: number;
 }
 
 export interface StockTransferDetails {
@@ -106,6 +128,8 @@ export interface StockTransferDetails {
   originAddress?: string;
   destinationGov?: string;
   destinationAddress?: string;
+  originSiteId?: number;
+  destinationSiteId?: number;
   notes?: string;
   reference?: string;
   revisionNumber?: number;

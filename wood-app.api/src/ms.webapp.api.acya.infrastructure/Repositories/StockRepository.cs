@@ -392,6 +392,8 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
                     OriginAddress = ssexit.Address,
                     DestinationGov = ssreceipt.Gouvernorate,
                     DestinationAddress = ssreceipt.Address,
+                    OriginSiteId = docexit.SalesSiteId,
+                    DestinationSiteId = docreceipt.SalesSiteId,
                     TransferDate = st.TransferDate,
                     Transporter = tr != null ? (tr.FullName ?? (tr.FirstName + " " + tr.LastName)) : string.Empty,
                     VehicleSerialNumber = vehicle != null ? vehicle.SerialNumber : null,
@@ -447,6 +449,8 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
         OriginAddress = x.ssexit.Address,
         DestinationGov = x.ssreceipt.Gouvernorate,
         DestinationAddress = x.ssreceipt.Address,
+        OriginSiteId = x.docexit.SalesSiteId,
+        DestinationSiteId = x.docreceipt.SalesSiteId,
         TransferDate = x.st.TransferDate,
         Transporter = x.tr != null ? (x.tr.FullName ?? (x.tr.FirstName + " " + x.tr.LastName)) : string.Empty,
         VehicleSerialNumber = x.vehicle != null ? x.vehicle.SerialNumber : null,
@@ -549,6 +553,8 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
         OriginAddress = r.ExitSite.Address,
         DestinationGov = r.ReceiptSite.Gouvernorate,
         DestinationAddress = r.ReceiptSite.Address,
+        OriginSiteId = r.ExitDoc.SalesSiteId,
+        DestinationSiteId = r.ReceiptDoc.SalesSiteId,
         TransferDate = r.St.TransferDate,
         Transporter = r.Transporter != null ? (r.Transporter.FullName ?? (r.Transporter.FirstName + " " + r.Transporter.LastName)) : null,
         VehicleSerialNumber = r.VehicleSerialNumber,
@@ -664,6 +670,8 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
         OriginAddress = x.OriginSite.Address,
         DestinationGov = x.DestinationSite.Gouvernorate,
         DestinationAddress = x.DestinationSite.Address,
+        OriginSiteId = x.ExitDoc.SalesSiteId,
+        DestinationSiteId = x.ReceiptDoc.SalesSiteId,
         TransferDate = x.StockTransfer.TransferDate,
         Transporter = x.Transporter != null ? (x.Transporter.FullName ?? (x.Transporter.FirstName + " " + x.Transporter.LastName)) : string.Empty,
         VehicleSerialNumber = x.Vehicle != null ? x.Vehicle.SerialNumber : null,
@@ -678,6 +686,161 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
       }).ToListAsync();
 
       return result;
+    }
+
+    public async Task<PagedStockTransfersDto> SearchStockTransfersAsync(
+        StockTransferFilterDto filter,
+        int? callerSiteId = null,
+        bool isAdmin = false)
+    {
+      int page = filter.Page < 1 ? 1 : filter.Page;
+      int pageSize = Math.Clamp(filter.PageSize <= 0 ? 20 : filter.PageSize, 1, 100);
+      int olderThanDays = filter.OlderThanDays < 1 ? 30 : filter.OlderThanDays;
+
+      // Fail-closed: non-admin callers without a resolved site cannot enumerate transfers
+      if (!isAdmin && (!callerSiteId.HasValue || callerSiteId.Value <= 0))
+      {
+        return new PagedStockTransfersDto
+        {
+          Items = Enumerable.Empty<StockTransferInfoDto>(),
+          TotalCount = 0,
+          Page = page,
+          PageSize = pageSize,
+          TotalPages = 0,
+          HistoricalPendingCount = 0
+        };
+      }
+
+      var utcNow = DateTime.UtcNow;
+      var historicalCutoff = utcNow.AddDays(-olderThanDays);
+
+      // Base query scoped to tenant schema via WoodAppContext, 1 row per transfer (no DocumentMerchandises fan-out)
+      var baseQuery = from st in context.StockTransfers.AsNoTracking()
+                      join docexit in context.Documents.AsNoTracking() on st.ExitDocumentId equals docexit.Id
+                      join docreceipt in context.Documents.AsNoTracking() on st.ReceiptDocumentId equals docreceipt.Id
+                      join ssexit in context.SalesSites.AsNoTracking() on docexit.SalesSiteId equals ssexit.Id
+                      join ssreceipt in context.SalesSites.AsNoTracking() on docreceipt.SalesSiteId equals ssreceipt.Id
+                      join tr in context.Transporters.AsNoTracking() on st.TransporterId equals tr.Id into trGroup
+                      from tr in trGroup.DefaultIfEmpty()
+                      join vehicle in context.Vehicles.AsNoTracking() on (tr != null ? tr.VehicleId : null) equals vehicle.Id into vehicleGroup
+                      from vehicle in vehicleGroup.DefaultIfEmpty()
+                      select new { st, docexit, docreceipt, ssexit, ssreceipt, tr, vehicle };
+
+      // Enforce site visibility
+      int? effectiveSiteId = isAdmin ? filter.SiteId : callerSiteId;
+      if (effectiveSiteId.HasValue && effectiveSiteId.Value > 0)
+      {
+        int sId = effectiveSiteId.Value;
+        baseQuery = baseQuery.Where(x => x.docexit.SalesSiteId == sId || x.docreceipt.SalesSiteId == sId);
+      }
+
+      // Compute historical pending badge count for this caller's site visibility
+      int historicalPendingCount = await baseQuery
+          .Where(x => x.st.Status == TransferStatus.Pending && x.st.TransferDate < historicalCutoff)
+          .CountAsync();
+
+      var filteredQuery = baseQuery;
+
+      bool hasExplicitSearch =
+          filter.OlderPendingOnly ||
+          !string.IsNullOrWhiteSpace(filter.Reference) ||
+          filter.Status.HasValue ||
+          filter.FromDate.HasValue ||
+          filter.ToDate.HasValue;
+
+      if (filter.OlderPendingOnly)
+      {
+        // Retrieve ALL dispatched, unreceived, non-rejected/non-cancelled transfers older than threshold
+        filteredQuery = filteredQuery.Where(x =>
+            x.st.Status == TransferStatus.Pending &&
+            x.st.TransferDate < historicalCutoff);
+      }
+      else if (!hasExplicitSearch)
+      {
+        // Preserve default recent-transfers register behavior (last 30 days UTC)
+        var recentCutoff = utcNow.AddDays(-30);
+        filteredQuery = filteredQuery.Where(x => x.st.TransferDate >= recentCutoff);
+      }
+
+      if (!filter.OlderPendingOnly && filter.Status.HasValue)
+      {
+        var targetStatus = filter.Status.Value;
+        filteredQuery = filteredQuery.Where(x => x.st.Status == targetStatus);
+      }
+
+      if (!string.IsNullOrWhiteSpace(filter.Reference))
+      {
+        var searchLower = filter.Reference.Trim().ToLower();
+        filteredQuery = filteredQuery.Where(x =>
+            (x.st.Reference != null && x.st.Reference.ToLower().Contains(searchLower)) ||
+            (x.docexit.DocNumber != null && x.docexit.DocNumber.ToLower().Contains(searchLower)) ||
+            (x.docreceipt.DocNumber != null && x.docreceipt.DocNumber.ToLower().Contains(searchLower)));
+      }
+
+      if (filter.FromDate.HasValue)
+      {
+        var fromUtc = DateTime.SpecifyKind(filter.FromDate.Value.Date, DateTimeKind.Utc);
+        filteredQuery = filteredQuery.Where(x => x.st.TransferDate >= fromUtc);
+      }
+
+      if (filter.ToDate.HasValue)
+      {
+        var toUtcExclusive = DateTime.SpecifyKind(filter.ToDate.Value.Date.AddDays(1), DateTimeKind.Utc);
+        filteredQuery = filteredQuery.Where(x => x.st.TransferDate < toUtcExclusive);
+      }
+
+      int totalCount = await filteredQuery.CountAsync();
+      int totalPages = totalCount == 0 ? 0 : (int)Math.Ceiling(totalCount / (double)pageSize);
+
+      var items = await filteredQuery
+          .OrderByDescending(x => x.st.TransferDate)
+          .ThenByDescending(x => x.st.Id)
+          .Skip((page - 1) * pageSize)
+          .Take(pageSize)
+          .Select(x => new StockTransferInfoDto
+          {
+            Id = x.st.Id,
+            DocSortie = x.docexit.DocNumber ?? string.Empty,
+            DocReception = x.docreceipt.DocNumber ?? string.Empty,
+            Origine = (!string.IsNullOrEmpty(x.ssexit.Gouvernorate) && !string.IsNullOrEmpty(x.ssexit.Address))
+                ? x.ssexit.Gouvernorate + " - " + x.ssexit.Address
+                : (x.ssexit.Address ?? x.ssexit.Gouvernorate ?? string.Empty),
+            Destination = (!string.IsNullOrEmpty(x.ssreceipt.Gouvernorate) && !string.IsNullOrEmpty(x.ssreceipt.Address))
+                ? x.ssreceipt.Gouvernorate + " - " + x.ssreceipt.Address
+                : (x.ssreceipt.Address ?? x.ssreceipt.Gouvernorate ?? string.Empty),
+            OriginGov = x.ssexit.Gouvernorate,
+            OriginAddress = x.ssexit.Address,
+            DestinationGov = x.ssreceipt.Gouvernorate,
+            DestinationAddress = x.ssreceipt.Address,
+            OriginSiteId = x.docexit.SalesSiteId,
+            DestinationSiteId = x.docreceipt.SalesSiteId,
+            ItemsCount = context.DocumentMerchandises.Count(dm => dm.DocumentId == x.docexit.Id),
+            TransferDate = x.st.TransferDate,
+            Transporter = x.tr != null ? (x.tr.FullName ?? (x.tr.FirstName + " " + x.tr.LastName)) : string.Empty,
+            VehicleSerialNumber = x.vehicle != null ? x.vehicle.SerialNumber : null,
+            RefPaquet = string.Empty,
+            Status = x.st.Status,
+            // Server-side validation code protection: expose ONLY to Admin or origin-site user
+            ConfirmationCode = (isAdmin || (callerSiteId.HasValue && callerSiteId.Value == x.docexit.SalesSiteId))
+                ? x.st.ConfirmationCode
+                : null,
+            Notes = x.st.Notes,
+            Reference = x.st.Reference,
+            RevisionNumber = x.st.RevisionNumber,
+            UpdateDate = x.st.UpdateDate,
+            RejectionReason = x.st.RejectionReason
+          })
+          .ToListAsync();
+
+      return new PagedStockTransfersDto
+      {
+        Items = items,
+        TotalCount = totalCount,
+        Page = page,
+        PageSize = pageSize,
+        TotalPages = totalPages,
+        HistoricalPendingCount = historicalPendingCount
+      };
     }
 
     /**

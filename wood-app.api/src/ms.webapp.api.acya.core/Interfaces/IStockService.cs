@@ -21,10 +21,12 @@ namespace ms.webapp.api.acya.core.Interfaces
         Task<IEnumerable<StockDto>> GetAllStocksAsync();
         
         // Complex Read Operations
-        Task<StockTransferInfoDto?> GetStockTransferByIdAsync(int transferId);
-        Task<IEnumerable<StockTransferInfoDto>> GetStockTransfersInfosAsync(int? siteId = null);
-        Task<IEnumerable<StockTransferDetailsDto>> GetStockTransfersDetailsAsync(string? originDoc, string? receiptDoc);
-        Task<IEnumerable<StockTransferInfoDto>> GetFilteredStockTransfersAsync(DateTime? fromDate, DateTime? toDate, int? originSiteId, int? destinationSiteId);
+        Task<StockTransferInfoDto?> GetStockTransferByIdAsync(int transferId, int? callerSiteId = null, bool isAdmin = false);
+        Task<IEnumerable<StockTransferInfoDto>> GetStockTransfersInfosAsync(int? siteId = null, int? callerSiteId = null, bool isAdmin = false);
+        Task<IEnumerable<StockTransferDetailsDto>> GetStockTransfersDetailsAsync(string? originDoc, string? receiptDoc, int? callerSiteId = null, bool isAdmin = false);
+        Task<IEnumerable<StockTransferInfoDto>> GetFilteredStockTransfersAsync(DateTime? fromDate, DateTime? toDate, int? originSiteId, int? destinationSiteId, int? callerSiteId = null, bool isAdmin = false);
+        Task<PagedStockTransfersDto> SearchStockTransfersAsync(StockTransferFilterDto filter, int? callerSiteId = null, bool isAdmin = false);
+        Task<(bool Found, bool Authorized, string? ConfirmationCode)> GetConfirmationCodeAsync(int transferId, int? callerSiteId, bool isAdmin);
         Task<IEnumerable<WoodArticleStockDetail>> GetWoodArticleStockDetailsAsync(string articleRef, int salesSiteId, int merchandiseId);
         
         // Stock Alerts

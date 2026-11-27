@@ -68,6 +68,13 @@ namespace ms.webapp.api.acya.infrastructure.Configurations.Documents
             entity.HasIndex(e => e.TransferDate)
                   .HasDatabaseName("ix_tbl_stock_transfer_transferdate");
 
+            entity.HasIndex(e => new { e.Status, e.TransferDate })
+                  .HasDatabaseName("ix_tbl_stock_transfer_status_transferdate");
+
+            entity.HasIndex(e => e.TransferDate)
+                  .HasDatabaseName("ix_tbl_stock_transfer_pending_date")
+                  .HasFilter("status = 1");
+
             entity.HasIndex(e => e.Reference)
                   .HasDatabaseName("ix_tbl_stock_transfer_reference")
                   .HasFilter("reference IS NOT NULL");

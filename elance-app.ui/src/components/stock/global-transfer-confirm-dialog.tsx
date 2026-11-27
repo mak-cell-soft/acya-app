@@ -182,7 +182,7 @@ export function GlobalTransferConfirmDialog() {
         </DialogHeader>
 
         {/* Voucher Info */}
-        <div className="grid grid-cols-2 gap-3 text-xs bg-zinc-50 dark:bg-zinc-900/50 p-3.5 rounded-xl border border-zinc-200/50 dark:border-zinc-800/40">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs bg-zinc-50 dark:bg-zinc-900/50 p-3.5 rounded-xl border border-zinc-200/50 dark:border-zinc-800/40">
           <div className="space-y-1">
             <span className="text-[10px] uppercase font-bold text-zinc-400">Site Expéditeur</span>
             <div className="font-semibold text-zinc-800 dark:text-zinc-200">
@@ -193,6 +193,15 @@ export function GlobalTransferConfirmDialog() {
             <span className="text-[10px] uppercase font-bold text-zinc-400">N° Bon Sortie</span>
             <div className="font-mono font-bold text-corp-blue-700 dark:text-corp-blue-400">
               {selectedTransferForConfirm?.transferRef}
+            </div>
+          </div>
+          <div className="space-y-1">
+            <span className="text-[10px] uppercase font-bold text-zinc-400">Date d&apos;Expédition</span>
+            <div className="font-mono font-semibold text-zinc-700 dark:text-zinc-300 flex items-center gap-1">
+              <Calendar className="h-3.5 w-3.5 text-zinc-400 shrink-0" />
+              {selectedTransferForConfirm?.dispatchDate && !Number.isNaN(new Date(selectedTransferForConfirm.dispatchDate).getTime())
+                ? new Date(selectedTransferForConfirm.dispatchDate).toLocaleDateString('fr-FR')
+                : 'Non renseignée'}
             </div>
           </div>
         </div>

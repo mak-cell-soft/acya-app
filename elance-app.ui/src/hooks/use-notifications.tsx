@@ -6,6 +6,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '@/store/use-auth-store';
 import { getBaseApiUrl } from '@/lib/axios';
 import { notificationService, TransferNotification, AppNotification, NotificationType } from '@/services/components/notification.service';
+import { TransferStatus } from '@/types/stock';
 import { toast } from 'sonner';
 
 interface NotificationContextProps {
@@ -50,23 +51,36 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       const missed = await notificationService.getMissedNotifications(user.id);
       console.log('[SignalR] Missed Notifications Loaded:', missed);
       if (missed && missed.length > 0) {
-        // Map raw data from missed content JSON if needed
+        // Map enriched backend DTO (authoritative persisted TransferDate & Status) with legacy fallback
         const mapped: TransferNotification[] = missed.map((item: any) => {
           try {
-            const content = JSON.parse(item.content);
+            let content: any = {};
+            if (typeof item.content === 'string' && item.content.trim()) {
+              try { content = JSON.parse(item.content); } catch {}
+            }
             let additionalData = content.AdditionalData;
             if (typeof additionalData === 'string') {
               try { additionalData = JSON.parse(additionalData); } catch {}
             }
+
+            const transferId = item.transferId || content.TransferId || item.id;
+            const exitDocNumber = item.exitDocNumber || additionalData?.ExitDocNumber || '';
+            const receiptDocNumber = item.receiptDocNumber || additionalData?.ReceiptDocNumber || '';
+            // Never substitute notification createdAt for the persisted dispatch date
+            const dispatchDate = item.transferDate ?? content.TransferDate ?? null;
+            const status = (item.transferStatus ?? item.status ?? TransferStatus.Pending) as TransferStatus;
+
             return {
-              id: content.TransferId || item.id,
-              transferRef: content.Reference || 'Transfert',
-              originSite: content.OriginSite || 0,
+              id: transferId,
+              transferRef: item.transferRef || content.Reference || exitDocNumber || 'Transfert',
+              originSite: String(item.originSite || content.OriginSite || 'Dépôt expéditeur'),
               date: new Date(item.createdAt),
-              itemsCount: content.ItemsCount || 0,
-              exitDocNumber: additionalData?.ExitDocNumber || '',
-              receiptDocNumber: additionalData?.ReceiptDocNumber || '',
-              destinationSiteId: Number(item.targetGroup)
+              dispatchDate,
+              status,
+              itemsCount: item.itemsCount ?? content.ItemsCount ?? 0,
+              exitDocNumber,
+              receiptDocNumber,
+              destinationSiteId: Number(item.destinationSiteId || item.targetGroup || 0)
             };
           } catch (e) {
             console.error('[SignalR] Failed to parse missed item content:', item, e);
@@ -75,14 +89,11 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
         }).filter((n: any) => n !== null) as TransferNotification[];
 
         setNotifications(prev => {
-          // Merge unique only
-          const merged = [...prev];
-          mapped.forEach(item => {
-            if (!merged.some(x => x.id === item.id)) {
-              merged.push(item);
-            }
-          });
-          return merged;
+          // Merge unique only, updating existing entries with latest authoritative metadata
+          const byId = new Map<number, TransferNotification>();
+          prev.forEach(item => byId.set(item.id, item));
+          mapped.forEach(item => byId.set(item.id, item));
+          return Array.from(byId.values());
         });
 
         toast.info(`${mapped.length} notification(s) de transferts manquée(s) récupérée(s)`);
@@ -181,13 +192,15 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
 
       const mapped: TransferNotification = {
         id: transfer.transferId,
-        transferRef: transfer.reference,
-        originSite: transfer.originSite,
+        transferRef: transfer.reference || transfer.exitDocNumber || 'Transfert',
+        originSite: String(transfer.originSite || 'Dépôt expéditeur'),
         date: new Date(),
+        dispatchDate: transfer.transferDate ?? transfer.TransferDate ?? null,
+        status: (transfer.status ?? TransferStatus.Pending) as TransferStatus,
         itemsCount: transfer.itemsCount || 0,
-        exitDocNumber: transfer.exitDocNumber,
-        receiptDocNumber: transfer.receiptDocNumber,
-        destinationSiteId: transfer.destinationSiteId
+        exitDocNumber: transfer.exitDocNumber || '',
+        receiptDocNumber: transfer.receiptDocNumber || '',
+        destinationSiteId: Number(transfer.destinationSiteId || 0)
       };
 
       setNotifications(prev => [
